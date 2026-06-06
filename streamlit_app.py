@@ -1,10 +1,38 @@
 import streamlit as st
 import requests
 import datetime
+import threading
+import time
+import uvicorn
+import main as backend_main
 
 # from exception.exceptions import TradingBotException
 import sys
 
+backend_thread_started = False # Flag to ensure backend thread is started only once
+
+
+def start_backend():
+    global backend_thread_started
+    if backend_thread_started:
+        return
+
+    backend_thread_started = True
+# run the FastAPI backend in a separate thread to allow Streamlit to run concurrently
+    def run_backend():
+        uvicorn.run(
+            backend_main.app,
+            host="127.0.0.1",
+            port=8000,
+            log_level="info",
+        )
+
+    thread = threading.Thread(target=run_backend, daemon=True)
+    thread.start()
+    time.sleep(1)
+
+# start the backend before launching the Streamlit app
+start_backend()
 BASE_URL = "http://localhost:8000"  # Backend endpoint
 
 st.set_page_config(
