@@ -39,12 +39,18 @@ async def query_travel_agent(query:QueryRequest):
         messages={"messages": [query.question]}
         output = react_app.invoke(messages)
 
-        # If result is dict with messages:
+        # Extract final response from graph output
         if isinstance(output, dict) and "messages" in output:
-            final_output = output["messages"][-1].content  # Last AI response
+            final_output = output["messages"][-1].content
         else:
             final_output = str(output)
-        
-        return {"answer": final_output}
+
+        # Save response as markdown file
+        saved_file = save_document(final_output)
+
+        return {
+            "answer": final_output,
+            "saved_file": saved_file
+        }
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
